@@ -73,7 +73,7 @@ distrib_docs_decennies <- ggplot(distrib_decennies,
   xlab("Décennies")+
   theme(axis.text.x = element_text(angle = 55, vjust = 0.5, hjust=0.5))
 
-ggsave("resultats/20230418_PB_DistribChronologiqueDecennies.png", dpi=300)
+ggsave("resultats/diagrammes/20230418_PB_DistribChronologiqueDecennies.png", dpi=300)
 
 # Création d'une table élégante pour exportation
 table_distrib_chrono_gt <- gt(distrib_decennies) |> cols_label(
@@ -82,10 +82,10 @@ table_distrib_chrono_gt <- gt(distrib_decennies) |> cols_label(
   tab_source_note(
     source_note = md("Données: BAnQ, 2023")
   )
-table_distrib_chrono_gt |> gtsave(filename = "resultats/20230418_PB_table_distrib_chrono_gt.png")
+table_distrib_chrono_gt |> gtsave(filename = "resultats/tables/20230418_PB_table_distrib_chrono_gt.png")
 
 # Exportation de la table sous forme de .csv
-fwrite(distrib_decennies, "resultats/20230418_PB_DistribChronologiqueDecennies.csv")
+fwrite(distrib_decennies, "resultats/tables/20230418_PB_DistribChronologiqueDecennies.csv")
 
 
 #### Distribution par pays ----
@@ -168,7 +168,9 @@ equiv_pays <- tribble(
 # Croisement des tables
 PaysPublication <- merge.data.table(lire[, .(Pays)], equiv_pays, by.x = "Pays", by.y = "sigle")
 
-ggplot(PaysPublication[, .N, by="paysAssocie"][N>10][order(N, decreasing = TRUE)],
+PaysPublication_N <- PaysPublication[, .N, by="paysAssocie"][order(N, decreasing = TRUE)]
+
+DistribPaysPublication <- ggplot(PaysPublication_N[N>10],
        aes(x = reorder(paysAssocie, N), y=N)) +
   geom_bar(stat = "identity")+
   coord_flip() +
@@ -183,7 +185,9 @@ ggplot(PaysPublication[, .N, by="paysAssocie"][N>10][order(N, decreasing = TRUE)
   ylab(NULL)+
   theme_classic()
   
+ggsave("resultats/diagrammes/20230418_PB_DistribPaysPublication.png", dpi=300)
 
+fwrite(PaysPublication_N, "resultats/tables/20230418_PB_DistribPaysPublication.csv")
 
 
 
