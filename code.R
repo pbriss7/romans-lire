@@ -1,11 +1,3 @@
-library(data.table)
-library(readxl)
-library(purrr)
-library(stringr)
-library(gt)
-library(ggplot2)
-library(tibble)
-
 #### Préliminaires ----
 
 # Importation de la table
@@ -36,14 +28,17 @@ lire_champs <- gt(lireCol) |> cols_label(Champs = "Nom des champs")
 lire_champs |> gtsave(filename = "resultats/202304_PB_table_champs.png")
 
 
+# Make clean names
+names(lire) <- janitor::make_clean_names(names(lire))
+
 
 #### Année de publication ----
 
 # Remplacement d'erreurs (4) dans le champ Année de publication. Remplacement des modalités problématiques par NA
-lire[, `Année de publication`:=ifelse(lire$`Année de publication` %ilike% "[0-9]+", as.integer(lire$`Année de publication`), NA)]
+lire[, annee_de_publication:=ifelse(lire$annee_de_publication %ilike% "[0-9]+", as.integer(lire$annee_de_publication), NA)]
 
 # Observation de la distribution
-table(lire$`Année de publication`)
+table(lire$annee_de_publication)
 
 # Fonction pour agréger les documents par décennie
 slicing_f <- function(x){
@@ -52,8 +47,8 @@ slicing_f <- function(x){
 }
 
 # Création d'une table avec la fonction
-distrib_decennies <- lire[!is.na(`Année de publication`), .(`Numéro de séquence`, `Année de publication`)][
-  , decennies:=slicing_f(`Année de publication`)][
+distrib_decennies <- lire[!is.na(annee_de_publication), .(numero_de_sequence, annee_de_publication)][
+  , decennies:=slicing_f(annee_de_publication)][
     ,.N, by="decennies"][
       order(decennies, decreasing = TRUE)]
 
@@ -85,92 +80,92 @@ table_distrib_chrono_gt <- gt(distrib_decennies) |> cols_label(
 table_distrib_chrono_gt |> gtsave(filename = "resultats/tables/20230418_PB_table_distrib_chrono_gt.png")
 
 # Exportation de la table sous forme de .csv
-fwrite(distrib_decennies, "resultats/tables/20230418_PB_DistribChronologiqueDecennies.csv")
+# fwrite(distrib_decennies, "resultats/tables/20230418_PB_DistribChronologiqueDecennies.csv")
 
 
 #### Distribution par pays ----
 # Observation
-names(table(lire$Pays))
+names(table(lire$pays))
 
 # Corrections (la modalité indiquée d'abord est remplacée par la seconde):
-lire[Pays == "FR", Pays:="fr"]
+lire[pays == "FR", pays:="fr"]
 
-lire[Pays == "cc", Pays:="ch"]
+lire[pays == "cc", pays:="ch"]
 
-lire[Pays == "enk", Pays:="uk"]
+lire[pays == "enk", pays:="uk"]
 
-lire[Pays == "xxk", Pays:="uk"]
+lire[pays == "xxk", pays:="uk"]
 
 
-pays_distrib <- data.table(sigle = names(table(lire$Pays)),
-                           N = as.vector(table(lire$Pays)))
+pays_distrib <- data.table(sigle = names(table(lire$pays)),
+                           N = as.vector(table(lire$pays)))
 
 # Créer une table d'équivalences pour les lieux de publication
 equiv_pays <- tribble(
   ~sigle, ~lieuSigleNomsComplet, ~paysAssocie, ~type,
-  "abc", "Alberta", "Canada", "région",
-  "bbc", "Colombie Britannique", "Canada", "région",
+  "abc", "Alberta", "Canada", "autre",
+  "bbc", "Colombie Britannique", "Canada", "autre",
   "be", "Belgique", "Belgique", "pays",
-  "cau", "Californie", "États-Unis", "région",
+  "cau", "Californie", "États-Unis", "autre",
   "cf", "République centrafricaine", "République centrafricaine", "pays",
   "ch", "Chine", "Chine", "pays",
   "cm", "Cameroun", "Cameroun", "pays",
   "cq", "Comores", "Comores", "pays",
-  "dcu", "Washington, D.C.", "États-Unis", "région",
+  "dcu", "Washington, D.C.", "États-Unis", "autre",
   "dk", "Danemark", "Danemark", "pays",
-  "fg", "Guyane", "France", "région",
-  "flu", "Floride", "États-Unis", "région",
-  "fp", "Tahiti", "France", "région",
+  "fg", "Guyane", "France", "autre",
+  "flu", "Floride", "États-Unis", "autre",
+  "fp", "Tahiti", "France", "autre",
   "fr", "France", "France", "pays",
-  "gp", "Guadeloupe", "France", "région",
+  "gp", "Guadeloupe", "France", "autre",
   "gr", "Grèce", "Grèce", "pays",
   "gw", "Allemagne", "Allemagne", "pays",
-  "gy", "Guyane", "France", "région",
-  "ilu", "Illinois", "États-Unis", "région",
-  "inu", "Indiana", "États-Unis", "région",
+  "gy", "Guyane", "France", "autre",
+  "ilu", "Illinois", "États-Unis", "autre",
+  "inu", "Indiana", "États-Unis", "autre",
   "it", "Italie", "Italie", "pays",
   "iv", "Côte-d'Ivoire", "Côte-d'Ivoire", "pays",
   "le", "Liban", "Liban",  "pays",
   "lu", "Luxembourg", "Luxembourg", "pays",
-  "mau", "Massachusetts", "États-Unis", "région",
-  "mbc", "Manitoba", "Canada", "région",
+  "mau", "Massachusetts", "États-Unis", "autre",
+  "mbc", "Manitoba", "Canada", "autre",
   "mc", "Monaco", "Monaco", "pays",
-  "mdu", "Maryland", "États-Unis", "région",
-  "meu", "Maine", "États-Unis", "région",
+  "mdu", "Maryland", "États-Unis", "autre",
+  "meu", "Maine", "États-Unis", "autre",
   "mg", "Madagascar", "Madagascar", "pays",
-  "mq", "Martinique", "France", "région",
+  "mq", "Martinique", "France", "autre",
   "mr", "Maroc", "Maroc", "pays",
-  "nju", "New Jersey", "États-Unis", "région",
-  "nkc", "Nouveau-Brunswick", "Canada", "région",
-  "nl", "Nouvelle-Calédonie", "France", "région",
-  "nsc", "Nouvelle-Écosse", "Canada", "région",
-  "nyu", "New York", "États-Unis", "région",
-  "onc", "Ontario", "Canada", "région",
-  "oru", "Oregon", "États-Unis", "région",
-  "pic", "Île-du-Prince-Édouard", "Canada", "région",
+  "nju", "New Jersey", "États-Unis", "autre",
+  "nkc", "Nouveau-Brunswick", "Canada", "autre",
+  "nl", "Nouvelle-Calédonie", "France", "autre",
+  "nsc", "Nouvelle-Écosse", "Canada", "autre",
+  "nyu", "New York", "États-Unis", "autre",
+  "onc", "Ontario", "Canada", "autre",
+  "oru", "Oregon", "États-Unis", "autre",
+  "pic", "Île-du-Prince-Édouard", "Canada", "autre",
   "pl", "Pologne", "Pologne", "pays",
   "po", "Portugal", "Portugal", "pays",
-  "quc", "Québec", "Canada", "région",
-  "re", "Réunion", "France", "région",
+  "quc", "Québec", "Canada", "autre",
+  "re", "Réunion", "France", "autre",
   "rm", "Roumanie", "Roumanie", "pays",
   "ru", "Russie", "Russie", "pays",
   "sg", "Sénégal", "Sénégal", "pays",
-  "snc", "Saskatchewan", "Canada", "région",
+  "snc", "Saskatchewan", "Canada", "autre",
   "sp", "Espagne", "Espagne", "pays",
   "sz", "Suisse", "Suisse", "pays",
   "ti", "Tunisie", "Tunisie", "pays",
   "uk", "Grande-Bretagne", "Grande-Bretagne", "pays",
   "vm", "Vietnam", "Vietnam", "pays",
-  "wau", "Washington", "États-Unis", "région",
+  "wau", "Washington", "États-Unis", "autre",
   "xxu", NA, NA, NA
 )
 
 # Croisement des tables
-PaysPublication <- merge.data.table(lire[, .(Pays)], equiv_pays, by.x = "Pays", by.y = "sigle")
+paysPublication <- merge.data.table(lire[, .(numero_de_sequence, pays)], equiv_pays, by.x = "pays", by.y = "sigle")
 
-PaysPublication_N <- PaysPublication[, .N, by="paysAssocie"][order(N, decreasing = TRUE)]
+paysPublication_N <- paysPublication[, .N, by="paysAssocie"][order(N, decreasing = TRUE)]
 
-DistribPaysPublication <- ggplot(PaysPublication_N[N>10],
+DistribPaysPublication <- ggplot(paysPublication_N[N>10],
        aes(x = reorder(paysAssocie, N), y=N)) +
   geom_bar(stat = "identity")+
   coord_flip() +
@@ -179,7 +174,7 @@ DistribPaysPublication <- ggplot(PaysPublication_N[N>10],
             vjust = +0.7,
             size = 2.5,
             colour = "black")+
-  labs(title = "Distribution des romans exotopiques selon les principaux Pays de publication",
+  labs(title = "Distribution des romans exotopiques selon les principaux pays de publication",
        caption = "Données: BANQ, 2023")+
   xlab(NULL)+
   ylab(NULL)+
@@ -187,8 +182,15 @@ DistribPaysPublication <- ggplot(PaysPublication_N[N>10],
   
 ggsave("resultats/diagrammes/20230418_PB_DistribPaysPublication.png", dpi=300)
 
-fwrite(PaysPublication_N, "resultats/tables/20230418_PB_DistribPaysPublication.csv")
+# Exportation de la table sous forme de .csv
+# fwrite(PaysPublication_N, "resultats/tables/20230418_PB_DistribPaysPublication.csv")
 
 
+#### Littérature nationale ----
+# Création d'une nouvelle table comprenant les champs de paysPublication + champs de contenu
+lireEnrichi <- merge(lire[, -c("pays")], PaysPublication, by = "numero_de_sequence")
+
+colnames(lire)
+personnages_principaux <- strsplit(lire$personnage_principal[1:10], ";") |> unlist()
 
 
