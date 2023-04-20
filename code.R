@@ -1,44 +1,66 @@
+# Statistiques descriptives de la base de données Romans à lire (BANQ)
+# Auteur: Pascal Brissette (U. McGill)
+
+#### Fonction d'installation/activation des extensions ----
+
+inst_ext_fun <- function(extension) {
+  if(!extension %in% rownames(installed.packages())) {
+    install.packages(extension, dependencies = TRUE)
+  }
+  require(extension, character.only = TRUE)
+}
+
+# Application aux extensions
+extensions <-
+  c(
+    "data.table",
+    "readxl",
+    "ggplot2",
+    "stringr",
+    "tibble",
+    "janitor",
+    "XLS"
+  )
+
+# Application de la fonction à chaque élément du vecteur `extensions`
+sapply(extensions, inst_ext_fun)
+
 #### Préliminaires ----
 
 # Importation de la table
-lire <- read_excel("donnees/romans@lire_indexation_2023-01-24.xlsx") |> setDT()
+rAlireIntegral <- read_excel("donnees/romans@lire_indexation_2023-01-24.xlsx") |> setDT()
 
 # Élimination d'une colonne créée par erreur dans l'importation des données
-lire[, ...12:=NULL]
-
+rAlireIntegral[, ...12:=NULL]
 
 ##### Distribution des documents selon la forme (roman/nouvelle) ----
 # Création d'une colonne catégorielle
-lire$roman_nouvelle <- ifelse(lire$`Genre littéraire` %ilike% "roman", "roman", "nouvelle") |> factor()
-str(lire)
+rAlireIntegral$roman_nouvelle <- ifelse(rAlireIntegral$`Genre littéraire` %ilike% "roman", "roman", "nouvelle") |> factor()
 
-# Distribution
-table(lire$roman_nouvelle)
+# Distribution (romans/nouvelles)
+table(rAlireIntegral$roman_nouvelle)
+
 
 #### Titres uniques ----
-lire[!duplicated(lire$Titre), .N]
+# Nombre de titres uniques
+rAlireIntegral[!duplicated(rAlireIntegral$Titre), .N]
 
 
 #### Champs de la table ----
 # Création d'une table ne contenant que les noms des champs de la table brute
-lireCol <- data.table(Champs = colnames(lire))
+lireCol <- data.table(Champs = colnames(rAlireIntegral))
 
-# Affichage élégant de cette table pour exportation
-lire_champs <- gt(lireCol) |> cols_label(Champs = "Nom des champs")
-lire_champs |> gtsave(filename = "resultats/202304_PB_table_champs.png")
-
-
-# Make clean names
-names(lire) <- janitor::make_clean_names(names(lire))
+# Formatage des noms de colonnes
+names(rAlireIntegral) <- janitor::make_clean_names(names(rAlireIntegral))
 
 
-#### Année de publication ----
+#### Distribution selon l'année de publication ----
 
 # Remplacement d'erreurs (4) dans le champ Année de publication. Remplacement des modalités problématiques par NA
-lire[, annee_de_publication:=ifelse(lire$annee_de_publication %ilike% "[0-9]+", as.integer(lire$annee_de_publication), NA)]
+rAlireIntegral[, annee_de_publication:=ifelse(rAlireIntegral$annee_de_publication %ilike% "[0-9]+", as.integer(rAlireIntegral$annee_de_publication), NA)]
 
 # Observation de la distribution
-table(lire$annee_de_publication)
+table(rAlireIntegral$annee_de_publication)
 
 # Fonction pour agréger les documents par décennie
 slicing_f <- function(x){
@@ -47,7 +69,7 @@ slicing_f <- function(x){
 }
 
 # Création d'une table avec la fonction
-distrib_decennies <- lire[!is.na(annee_de_publication), .(numero_de_sequence, annee_de_publication)][
+distrib_decennies <- rAlireIntegral[!is.na(annee_de_publication), .(numero_de_sequence, annee_de_publication)][
   , decennies:=slicing_f(annee_de_publication)][
     ,.N, by="decennies"][
       order(decennies, decreasing = TRUE)]
@@ -66,18 +88,10 @@ distrib_docs_decennies <- ggplot(distrib_decennies,
        caption = "Données: BANQ, 2023")+
   ylab(NULL)+
   xlab("Décennies")+
-  theme(axis.text.x = element_text(angle = 55, vjust = 0.5, hjust=0.5))
+  theme(axis.text.x = element_text(angle = 55, vjust = 0.5, hjust=0.5))+
+  theme_classic()
 
 ggsave("resultats/diagrammes/20230418_PB_DistribChronologiqueDecennies.png", dpi=300)
-
-# Création d'une table élégante pour exportation
-table_distrib_chrono_gt <- gt(distrib_decennies) |> cols_label(
-  decennies = "Décennies",
-  N = "Nombre de documents")|>
-  tab_source_note(
-    source_note = md("Données: BAnQ, 2023")
-  )
-table_distrib_chrono_gt |> gtsave(filename = "resultats/tables/20230418_PB_table_distrib_chrono_gt.png")
 
 # Exportation de la table sous forme de .csv
 # fwrite(distrib_decennies, "resultats/tables/20230418_PB_DistribChronologiqueDecennies.csv")
@@ -85,20 +99,20 @@ table_distrib_chrono_gt |> gtsave(filename = "resultats/tables/20230418_PB_table
 
 #### Distribution par pays ----
 # Observation
-names(table(lire$pays))
+names(table(rAlireIntegral$pays))
 
 # Corrections (la modalité indiquée d'abord est remplacée par la seconde):
-lire[pays == "FR", pays:="fr"]
+rAlireIntegral[pays == "FR", pays:="fr"]
 
-lire[pays == "cc", pays:="ch"]
+rAlireIntegral[pays == "cc", pays:="ch"]
 
-lire[pays == "enk", pays:="uk"]
+rAlireIntegral[pays == "enk", pays:="uk"]
 
-lire[pays == "xxk", pays:="uk"]
+rAlireIntegral[pays == "xxk", pays:="uk"]
 
 
-pays_distrib <- data.table(sigle = names(table(lire$pays)),
-                           N = as.vector(table(lire$pays)))
+pays_distrib <- data.table(sigle = names(table(rAlireIntegral$pays)),
+                           N = as.vector(table(rAlireIntegral$pays)))
 
 # Créer une table d'équivalences pour les lieux de publication
 equiv_pays <- tribble(
@@ -161,7 +175,7 @@ equiv_pays <- tribble(
 )
 
 # Croisement des tables
-paysPublication <- merge.data.table(lire[, .(numero_de_sequence, pays)], equiv_pays, by.x = "pays", by.y = "sigle")
+paysPublication <- merge.data.table(rAlireIntegral[, .(numero_de_sequence, pays)], equiv_pays, by.x = "pays", by.y = "sigle")
 
 paysPublication_N <- paysPublication[, .N, by="paysAssocie"][order(N, decreasing = TRUE)]
 
@@ -188,9 +202,22 @@ ggsave("resultats/diagrammes/20230418_PB_DistribPaysPublication.png", dpi=300)
 
 #### Littérature nationale ----
 # Création d'une nouvelle table comprenant les champs de paysPublication + champs de contenu
-lireEnrichi <- merge(lire[, -c("pays")], PaysPublication, by = "numero_de_sequence")
+lireEnrichi <- merge(rAlireIntegral[, -c("pays")], paysPublication, by = "numero_de_sequence")
 
-colnames(lire)
-personnages_principaux <- strsplit(lire$personnage_principal[1:10], ";") |> unlist()
+litteratureNationale_N <- lireEnrichi[, .(litterature_nationale)][
+  , .N, "litterature_nationale"][
+    order(N, decreasing = TRUE)
+    ]
+
+# Exportation de la table sous forme de .csv
+fwrite(litteratureNationale_N, "resultats/tables/20230418_PB_litteratureNationaleEtiquettesOriginales.csv")
+
+# ***
+
+
+
+
+
+personnages_principaux <- strsplit(rAlireIntegral$personnage_principal[1:10], ";") |> unlist()
 
 
