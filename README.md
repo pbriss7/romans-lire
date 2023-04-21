@@ -3,8 +3,8 @@
 
 ### Contenu du dossier
 * `code.R` :  script contenant le code R utilisé pour générer les tables et graphiques;
-* `resultats/` : sous-répertoire contenant les tables et graphiques;
-* `Description` : information sur la base de données et description. 
+* `fonctions.R` : fonctions utilisées dans le script principal;
+* `resultats/` : sous-répertoire contenant les tables et graphiques.
 
 ### Utilisation et restrictions
 La base de données `romans@lire` peut être consultée à travers l'interface web disponible sur le site de [Bibliothèque et Archives nationales du Québec](https://www.banq.qc.ca/plateformes-numeriques/romanslire/).

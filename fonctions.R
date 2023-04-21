@@ -19,7 +19,8 @@ activate_packages_f <- function(){
       "stringr",
       "tibble",
       "janitor",
-      "XLS"
+      "XLS",
+      "gt"
     )
   
   # # Ajout aux extensions de base
@@ -37,8 +38,8 @@ activate_packages_f <- function(){
 #### Fonction d'importation ----
 import_f <- function() {
   # Demander le chemin du fichier
-  reponse <- readline("Importation des données. Fournissez le lien exact du fichier de données, sans guillemets:  ")
-  
+  # reponse <- readline("Importation des données. Fournissez le lien exact du fichier de données, sans guillemets:  ")
+  reponse <- "donnees/lireAll.xlsx"
   # Vérifier si le chemin conduit au fichier
   if(!file.exists(reponse)) {
     stop("Vérifier le chemin du fichier")
@@ -128,5 +129,16 @@ data <- importAndClean_main_f()
 slicing_f <- function(x) {
   decennies <- factor(paste0(str_sub(x, 1,3),0))
   return(decennies)
+}
+
+# Fonction permettant de séparer les éléments d'une chaine sur le point-virgule et de renvoyer le nombre d'éléments du vecteur ainsi composé
+separerCompter_f <- function(x, split = ";") {
+  if(!is.na(x)){
+    x <- strsplit(x, split) |> unlist()
+    y <- length(x)
+  } else {
+    y <- 0
+  }
+  return(y)
 }
 
