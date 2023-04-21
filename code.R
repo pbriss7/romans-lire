@@ -345,7 +345,35 @@ ggsave("resultats/diagrammes/20230418_PB_DistribLieuxAction.png", dpi=300)
 
 fwrite(tousLieux_dt[order(-N)], "resultats/tables/20230421_PB_DistribLieuxAction.csv")
 
+#### Période historique  ----
+NbreNoNaPeriode <- data[!is.na(periode_historique), .N]
+NbreNoNaPeriodePourcent <- NbreNoNaPeriode/nrow(data)*100
 
+tousPeriode <- strsplit(data$periode_historique, ";") |> unlist() |> table()
+tousPeriode_dt <- data.table(periode = names(tousPeriode),
+                           N = as.vector(tousPeriode),
+                           key = "N")
+
+tousPeriode_dt[order(-N)][1:15]
+
+DistribPeriodeHist <- ggplot(tousPeriode_dt[order(-N)][1:15], aes(x = reorder(periode, N), y=N)) +
+  geom_bar(stat = "identity")+
+  coord_flip() +
+  geom_text(aes(label = N),
+            hjust = 0,
+            vjust = +0.8,
+            size = 2.5,
+            colour = "black")+
+  labs(title = "Principales périodes historiques de la base de données",
+       subtitle = "N = nombre de notice comportant l'étiquette",
+       caption = "Données: BANQ, 2023")+
+  xlab(NULL)+
+  ylab(NULL)+
+  theme_classic()
+
+ggsave("resultats/diagrammes/20230418_PB_DistribPeriodeHist.png", dpi=300)
+
+fwrite(tousLieux_dt[order(-N)], "resultats/tables/20230421_PB_DistribPeriodeHist.csv")
 
 
 
