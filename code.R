@@ -317,12 +317,33 @@ fwrite(tousPersonnagres_dt[order(-N)], "resultats/tables/20230421_PB_DistribPers
 
 #### Lieux de l'action  ----
 NbreNoNaLieu <- data[!is.na(lieu_geographique), .N]
-NbreNoNaPourcent <- NbreNoNaLieu/nrow(data)*100
-tousPersonnages <- strsplit(data$categories_de_personnages, ";") |> unlist() |> table()
-tousPersonnagres_dt <- data.table(personnage = names(tousPersonnages),
-                                  N = as.vector(tousPersonnages),
+NbreNoNaLieuPourcent <- NbreNoNaLieu/nrow(data)*100
+
+tousLieux <- strsplit(data$lieu_geographique, ";") |> unlist() |> table()
+tousLieux_dt <- data.table(lieu = names(tousLieux),
+                                  N = as.vector(tousLieux),
                                   key = "N")
 
+tousLieux_dt[order(-N)][1:15]
+
+DistribLieuxAction <- ggplot(tousLieux_dt[order(-N)][1:15], aes(x = reorder(lieu, N), y=N)) +
+  geom_bar(stat = "identity")+
+  coord_flip() +
+  geom_text(aes(label = N),
+            hjust = 0,
+            vjust = +0.8,
+            size = 2.5,
+            colour = "black")+
+  labs(title = "Principaux lieux de l'action dans les ouvrages de la base de données",
+       subtitle = "N = nombre de notice comportant l'étiquette",
+       caption = "Données: BANQ, 2023")+
+  xlab(NULL)+
+  ylab(NULL)+
+  theme_classic()
+
+ggsave("resultats/diagrammes/20230418_PB_DistribLieuxAction.png", dpi=300)
+
+fwrite(tousLieux_dt[order(-N)], "resultats/tables/20230421_PB_DistribLieuxAction.csv")
 
 
 
