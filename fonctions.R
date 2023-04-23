@@ -142,3 +142,30 @@ separerCompter_f <- function(x, split = ";") {
   return(y)
 }
 
+# Base du graphique à barres
+graphique_f <- function(data, x, y, titre, vjust, hjust, flip=TRUE){
+  graphique <- ggplot(data, aes(x = reorder({{x}}, {{y}}), {{y}})) +
+    geom_bar(stat = "identity") +
+    labs(title = titre,
+         caption = "Données: BANQ, 2023")+
+    xlab(NULL)+
+    ylab(NULL)+
+    theme_classic()
+  if(flip) {
+    graphique <- graphique + 
+      coord_flip() +
+      geom_text(aes(label = N),
+                hjust = 0,
+                vjust = +0.8,
+                size = 2.5,
+                colour = "black")
+  } else {
+    graphique <- graphique +
+      geom_text(aes(label = N),
+                hjust = 0.5,
+                vjust = -0.7,
+                size = 2.5,
+                colour = "black")
+  }
+  return(graphique)
+}

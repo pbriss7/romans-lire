@@ -16,17 +16,17 @@ rm(list = setdiff(ls(), c(
   "slicing_f",
   "separerCompter_f"
   )))
+  
 
+data.table(NbreObservationsTotal = data[, .N],
+           NbreTitresUniques = data[!duplicated(data$titre), .N])
 
-#### Nombre de titres uniques ----
-# Nombre de titres uniques
-data[!duplicated(data$titre), .N]
-
-
+print(a)
+library(skimr)
 #### Distribution selon la langue du texte ----
 table(data$langue)
 
-#### Distribution selon la forme (roman/nouvelle) ----
+#### Distribution selon le genre (roman/nouvelle) ----
 
 ##### Création d'une colonne catégorielle ----
 data$roman_nouvelle <- ifelse(data$genre_litteraire %ilike% "roman", "roman", "nouvelle") |> factor()
@@ -69,7 +69,7 @@ distrib_docs_decennies <- ggplot(distrib_decennies, aes(x=decennies, y=N))+
   labs(title = "Distribution chronologique des documents par décennies\nNombre brut de documents",
        caption = "Données: BANQ, 2023")+
   ylab(NULL)+
-  xlab("Décennies")+
+  xlab("Décennies") +
   theme(axis.text.x = element_text(angle = 55, vjust = 0.5, hjust=0.5))+
   theme_classic()
 
@@ -275,7 +275,6 @@ DistribSujets <- ggplot(tousSujets_dt[order(-N)][1:15], aes(x = reorder(sujet, N
             size = 2.5,
             colour = "black")+
   labs(title = "Principaux sujets de la base de données",
-       subtitle = "N = nombre de notice comportant l'étiquette",
        caption = "Données: BANQ, 2023")+
   xlab(NULL)+
   ylab(NULL)+
@@ -286,32 +285,32 @@ ggsave("resultats/diagrammes/20230418_PB_DistribSujets.png", dpi=300)
 fwrite(tousSujets_dt[order(-N)], "resultats/tables/20230421_PB_tousSujets.csv")
 
 
+
+
 #### Catégories de personnages  ----
 NbreNoNaPerso <- data[!is.na(categories_de_personnages), .N]
 NbreNoNaPourcentPerso <- NbreNoNaPerso/nrow(data)*100
+
+# Données pour graphique
 tousPersonnages <- strsplit(data$categories_de_personnages, ";") |> unlist() |> table()
 tousPersonnagres_dt <- data.table(personnage = names(tousPersonnages),
                             N = as.vector(tousPersonnages),
                             key = "N")
 
-DistribPersonnages <- ggplot(tousPersonnagres_dt[order(-N)][1:15], aes(x = reorder(personnage, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.8,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Principales catégories de personnages de la base de données",
-       subtitle = "N = nombre de notice comportant l'étiquette",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+tousPersonnagres_ord_dt <- tousPersonnagres_dt[order(-N)][1:15]
+
+# Graphique
+
+DistribPersonnages <- graphique_f(tousPersonnagres_ord_dt,
+                                  x = personnage,
+                                  y = N,
+                                  titre = "Principales catégories de personnages de la base de données",
+                                  flip = TRUE)
 
 ggsave("resultats/diagrammes/20230418_PB_DistribPersonnages.png", dpi=300)
 
 fwrite(tousPersonnagres_dt[order(-N)], "resultats/tables/20230421_PB_DistribPersonnages.csv")
+
 
 
 
@@ -324,58 +323,41 @@ tousLieux_dt <- data.table(lieu = names(tousLieux),
                                   N = as.vector(tousLieux),
                                   key = "N")
 
-tousLieux_dt[order(-N)][1:15]
+# Données pour graphique
+tousLieux_ord_dt <- tousLieux_dt[order(-N)][1:15]
 
-DistribLieuxAction <- ggplot(tousLieux_dt[order(-N)][1:15], aes(x = reorder(lieu, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.8,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Principaux lieux de l'action dans les ouvrages de la base de données",
-       subtitle = "N = nombre de notice comportant l'étiquette",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+# Graphique
+DistribLieuxAction <- graphique_f(tousLieux_ord_dt,
+                                  x = lieu,
+                                  y = N,
+                                  titre = "Principaux lieux de l'action dans les ouvrages de la base de données",
+                                  flip = TRUE)
 
 ggsave("resultats/diagrammes/20230418_PB_DistribLieuxAction.png", dpi=300)
 
 fwrite(tousLieux_dt[order(-N)], "resultats/tables/20230421_PB_DistribLieuxAction.csv")
 
+
+
 #### Période historique  ----
 NbreNoNaPeriode <- data[!is.na(periode_historique), .N]
 NbreNoNaPeriodePourcent <- NbreNoNaPeriode/nrow(data)*100
 
+# Données pour graphique
 tousPeriode <- strsplit(data$periode_historique, ";") |> unlist() |> table()
 tousPeriode_dt <- data.table(periode = names(tousPeriode),
                            N = as.vector(tousPeriode),
                            key = "N")
+tousPeriode_ord_dt = tousPeriode_dt[order(-N)][1:15]
 
-tousPeriode_dt[order(-N)][1:15]
+# Graphique
+DistribPeriodeHist <- graphique_f(tousPeriode_ord_dt,
+                                  x = periode,
+                                  y = N,
+                                  titre = "Principales périodes historiques de la base de données",
+                                  flip = TRUE)
 
-DistribPeriodeHist <- ggplot(tousPeriode_dt[order(-N)][1:15], aes(x = reorder(periode, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.8,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Principales périodes historiques de la base de données",
-       subtitle = "N = nombre de notice comportant l'étiquette",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
 
 ggsave("resultats/diagrammes/20230418_PB_DistribPeriodeHist.png", dpi=300)
 
 fwrite(tousLieux_dt[order(-N)], "resultats/tables/20230421_PB_DistribPeriodeHist.csv")
-
-
-
-
-
