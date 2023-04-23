@@ -142,6 +142,7 @@ separerCompter_f <- function(x, split = ";") {
   return(y)
 }
 
+
 # Base du graphique à barres
 graphique_f <- function(data, x, y, titre, vjust, hjust, flip=TRUE){
   graphique <- ggplot(data, aes(x = reorder({{x}}, {{y}}), {{y}})) +
