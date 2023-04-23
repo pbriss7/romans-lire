@@ -28,26 +28,37 @@ table(data$langue)
 
 #### Distribution selon le genre (roman/nouvelle) ----
 
-##### Création d'une colonne catégorielle ----
+# Création d'une colonne catégorielle
 data$roman_nouvelle <- ifelse(data$genre_litteraire %ilike% "roman", "roman", "nouvelle") |> factor()
 
-# Création d'un diagramme avec cette table
-distrib_docs_genre <- ggplot(data[, .(roman_nouvelle)][, .N, "roman_nouvelle"],
-                                 aes(x=reorder(roman_nouvelle, N), y=N))+
-  geom_col()+
-  geom_text(aes(label = N),
-            hjust = 0.5,
-            vjust = -0.7,
-            size = 2.5,
-            colour = "black") +
-  labs(title = "Distribution des documents selon le genre (roman/nouvelle)",
-       caption = "Données: BANQ, 2023") +
-  ylab(NULL)+
-  xlab(NULL)+
-  theme_classic()
+# Données pour tableau
+DistribRomanNouvelle_dt <- data[, .(roman_nouvelle)][, .N, "roman_nouvelle"]
+
+distrib_docs_genre<- graphique_f(DistribRomanNouvelle_dt,
+                                 x = roman_nouvelle,
+                                 y = N,
+                                 flip = FALSE,
+                                 reorder = FALSE,
+                                 titre = "Distribution des documents selon le genre (roman/nouvelle)")
 
 ggsave("resultats/diagrammes/20230418_PB_DistribGenreLitt.png", dpi=300)
 
+# # PieChart
+# png(filename = "resultats/diagrammes/20230423_PB_DistribRomanNouvelles_PieChart.png",
+#     width = 1200,
+#     height = 1200)
+# PieChart(x = roman_nouvelle,
+#          cex = 2,
+#          data = data,
+#          hole = 0.5,
+#          fill = "blues",
+#          color = "black",
+#          lwd = 2,
+#          lty = 1,
+#          values_color = c("black", "white"),
+#          main = 'Distribution des documents\nselon le "genre"')
+# 
+# dev.off()
 
 #### Distribution selon l'année de publication ----
 
@@ -59,19 +70,11 @@ distrib_decennies <- data[!is.na(annee_de_publication), .(numero_de_sequence, an
 
 
 # Création d'un diagramme avec cette table
-distrib_docs_decennies <- ggplot(distrib_decennies, aes(x=decennies, y=N))+
-  geom_col()+
-  geom_text(aes(label = N),
-            hjust = 0.5,
-            vjust = -0.7,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Distribution chronologique des documents par décennies\nNombre brut de documents",
-       caption = "Données: BANQ, 2023")+
-  ylab(NULL)+
-  xlab("Décennies") +
-  theme(axis.text.x = element_text(angle = 55, vjust = 0.5, hjust=0.5))+
-  theme_classic()
+distrib_docs_decennies <- graphique_f(distrib_decennies,
+                                      x =decennies,
+                                      y = N,
+                                      titre = "Distribution chronologique des documents par décennies",
+                                      flip = FALSE)
 
 # Exportation du diagramme
 ggsave("resultats/diagrammes/20230418_PB_DistribChronologiqueDecennies.png", dpi=300)
@@ -80,7 +83,7 @@ ggsave("resultats/diagrammes/20230418_PB_DistribChronologiqueDecennies.png", dpi
 fwrite(distrib_decennies, "resultats/tables/20230418_PB_DistribChronologiqueDecennies.csv")
 
 
-#### Distribution par pays ----
+#### Distribution par pays de publication ----
 
 # Corrections (la modalité indiquée d'abord est remplacée par la seconde):
 data[pays == "FR", pays:="fr"]
@@ -104,19 +107,12 @@ paysPublication_N <- paysPublication[, .N, by="paysAssocie"][
   order(N, decreasing = TRUE)
   ]
 
-DistribPaysPublication <- ggplot(paysPublication_N[N>10], aes(x = reorder(paysAssocie, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.7,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Distribution des documents selon les principaux pays de publication",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+paysPublication_order_dt <- paysPublication_N[N>3]
+
+DistribPaysPublication <- graphique_f(paysPublication_order_dt,
+                                      x = paysAssocie,
+                                      y = N,
+                                      titre = "Distribution des documents selon les principaux pays de publication")
   
 ggsave("resultats/diagrammes/20230418_PB_DistribPaysPublication.png", dpi=300)
 
@@ -132,8 +128,10 @@ litteratureNationaleEtiquettesOriginales_N <- data[, .(litterature_nationale)][
   order(N, decreasing = TRUE)
   ]
 
+
 # Exportation de la table sous forme de .csv
 fwrite(litteratureNationale_N, "resultats/tables/20230418_PB_litteratureNationaleEtiquettesOriginales.csv")
+
 
 # Extraction des deux premiers termes des étiquettes originales (romans/nouvelles + nationalité)
 litteratureNationaleEtiquettes2termes_N <- data[, .(litterature_nationale)][
@@ -141,24 +139,20 @@ litteratureNationaleEtiquettes2termes_N <- data[, .(litterature_nationale)][
   , .N, "etiquettes2termes"][
     order(N, decreasing = TRUE)]
 
+
 # Exportation de la table sous forme de .csv
 fwrite(litteratureNationaleEtiquettes2termes_N, "resultats/tables/20230418_PB_litteratureNationaleEtiquettes2termes_N.csv")
 
 
+# Données pour diagramme
+litteratureNationaleEtiquettes2termes_order_dt_N <- litteratureNationaleEtiquettes2termes_N[1:15]
+
 # Diagramme (10 premières entrées)
-DistribLitteratureNationale <- ggplot(litteratureNationaleEtiquettes2termes_N[1:10], aes(x = reorder(etiquettes2termes, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.7,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Distribution des documents selon la nationalité de l'auteur·e",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+DistribLitteratureNationale <- graphique_f(litteratureNationaleEtiquettes2termes_order_dt_N,
+                                           x = etiquettes2termes,
+                                           y = N,
+                                           titre = "Distribution des documents selon la nationalité de l'auteur·e"
+                                           )
 
 ggsave("resultats/diagrammes/20230418_PB_DistribLittNationale2termes.png", dpi=300)
 
@@ -169,30 +163,26 @@ ggsave("resultats/diagrammes/20230418_PB_DistribLittNationale2termes.png", dpi=3
 data[, annee_adaptation:=as.numeric(str_extract(adaptation, "[0-9]+$"))]
 DistribAdaptationAnnuelle <- data[!is.na(annee_adaptation), .N, "annee_adaptation"][order(annee_adaptation, decreasing = TRUE)]
 
-DistribLittAdaptation<- ggplot(DistribAdaptationAnnuelle[annee_adaptation>1930], aes(x=annee_adaptation, y=N))+
-  geom_bar(stat = "identity") +
-  # geom_text(aes(label = N),
-  #           hjust = 0.5,
-  #           vjust = -0.7,
-  #           size = 2.5,
-  #           colour = "black")+
-  labs(title = "Distribution chronologique des adaptations après 1930",
-       caption = "Données: BANQ, 2023")+
-  ylab(NULL)+
-  xlab(NULL)+
-  scale_x_continuous(breaks = c(1930, 1950, 1970, 1990, 2010))+
-  theme_classic()
+DistribAdaptationAnnuelle_ord_dt <- DistribAdaptationAnnuelle[annee_adaptation>1980]
+
+DistribLittAdaptation<- graphique_f(DistribAdaptationAnnuelle_ord_dt,
+                                    x = annee_adaptation,
+                                    y = N,
+                                    titre = "Distribution chronologique des adaptations après 1980",
+                                    flip = FALSE,
+                                    reorder = FALSE)
 
 ggsave("resultats/diagrammes/20230421_PB_DistribAdaptation.png", dpi=300)
 
 fwrite(DistribAdaptationAnnuelle, "resultats/tables/20230421_PB_DistribAdaptation.csv")
 
 
-# Calcul du nombre de prix
+#### Calcul du nombre de prix ----
 data$nombre_de_prix <- lapply(data$prix_litteraire, separerCompter_f) |> unlist()
 
 NbrePrix <- data[, .(auteur, titre, annee_de_publication, pays, nombre_de_prix)][order(-nombre_de_prix)]
 
+# Tableau sous forme d'image (png)
 gtNbrePrix <- gt(NbrePrix[nombre_de_prix>3]) |> 
   tab_header(
     title = "Oeuvres ayant obtenu plus de trois prix",
@@ -216,43 +206,34 @@ tousGenres_dt <- data.table(genre = names(tousGenres),
                                   N = as.vector(tousGenres),
                                   key = "N")
 
+# Séparation des sous-genres par genres (roman/nouvelle)
 RomansSousGenres <- tousGenres_dt[genre %ilike% "roman"]
 NouvellesSousGenres <- tousGenres_dt[genre %ilike% "nouvelles"]
 
-DistribRomansSousGenres <- ggplot(RomansSousGenres[order(-N)][2:16], 
-                                  aes(x = reorder(genre, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.7,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Principaux sous-genres (roman) de la base de données",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+# Données pour diagramme
+RomansSousGenres_ord_dt <- RomansSousGenres[order(-N)][2:16]
 
+# Diagramme (sous-genres romans)
+DistribRomansSousGenres <- graphique_f(data = RomansSousGenres_ord_dt,
+                                       x = genre,
+                                       y = N,
+                                       titre = "Principaux sous-genres (roman) de la base de données",
+                                       flip = TRUE)
+
+# Sauvegarde du graphique et des données
 ggsave("resultats/diagrammes/20230418_PB_DistribRomansSousGenres.png", dpi=300)
 fwrite(RomansSousGenres[order(-N)], "resultats/tables/20230421_PB_RomansSousGenres.csv")
 
 
+# Diagramme (sous-genres nouvelles)
+NouvellesSousGenres_ord_dt <- NouvellesSousGenres[order(-N)][2:16]
 
-DistribNouvellesSousGenres <- ggplot(NouvellesSousGenres[order(-N)][2:16], 
-                                  aes(x = reorder(genre, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.8,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Principaux sous-genres (nouvelles) de la base de données",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+DistribNouvellesSousGenres <- graphique_f(NouvellesSousGenres_ord_dt,
+                                          x = genre,
+                                          y = N,
+                                          flip = TRUE,
+                                          titre = "Principaux sous-genres (nouvelles) de la base de données",
+                                          )
 
 ggsave("resultats/diagrammes/20230418_PB_DistribNouvellesSousGenres.png", dpi=300)
 fwrite(NouvellesSousGenres[order(-N)], "resultats/tables/20230421_PB_NouvellesSousGenres.csv")
@@ -261,24 +242,23 @@ fwrite(NouvellesSousGenres[order(-N)], "resultats/tables/20230421_PB_NouvellesSo
 #### Sujets  ----
 NbreNoNa <- data[!is.na(sujets), .N]
 NbreNoNaPourcent <- NbreNoNa/nrow(data)*100
+
+# Donnéées pour graphique
 tousSujets <- strsplit(data$sujets, ";") |> unlist() |> table()
 tousSujets_dt <- data.table(sujet = names(tousSujets),
                             N = as.vector(tousSujets),
                             key = "N")
 
-DistribSujets <- ggplot(tousSujets_dt[order(-N)][1:15], aes(x = reorder(sujet, N), y=N)) +
-  geom_bar(stat = "identity")+
-  coord_flip() +
-  geom_text(aes(label = N),
-            hjust = 0,
-            vjust = +0.7,
-            size = 2.5,
-            colour = "black")+
-  labs(title = "Principaux sujets de la base de données",
-       caption = "Données: BANQ, 2023")+
-  xlab(NULL)+
-  ylab(NULL)+
-  theme_classic()
+tousSujets_ord_dt <- tousSujets_dt[order(-N)][1:15]
+
+
+# Graphique
+DistribSujets <- graphique_f(tousSujets_ord_dt,
+                             x = sujet,
+                             y = N,
+                             flip = TRUE,
+                             titre = "Principaux sujets de la base de données")
+
 
 ggsave("resultats/diagrammes/20230418_PB_DistribSujets.png", dpi=300)
 

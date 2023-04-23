@@ -144,8 +144,13 @@ separerCompter_f <- function(x, split = ";") {
 
 
 # Base du graphique à barres
-graphique_f <- function(data, x, y, titre, vjust, hjust, flip=TRUE){
-  graphique <- ggplot(data, aes(x = reorder({{x}}, {{y}}), {{y}})) +
+graphique_f <- function(data, x, y, titre, flip=TRUE, reorder = TRUE){
+  if(reorder){
+    mapping = aes(x = reorder({{x}}, {{y}}), y = {{y}})
+  } else {
+    mapping = aes(x = {{x}}, y = {{y}})
+  }
+  graphique <- ggplot(data, mapping) +
     geom_bar(stat = "identity") +
     labs(title = titre,
          caption = "Données: BANQ, 2023")+
