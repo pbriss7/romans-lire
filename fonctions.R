@@ -143,7 +143,7 @@ separerCompter_f <- function(x, split = ";") {
 }
 
 
-# Base du graphique à barres
+# Fonction générant les diagrammes à barres
 graphique_f <- function(data, x, y, titre, flip=TRUE, reorder = TRUE){
   if(reorder){
     mapping = aes(x = reorder({{x}}, {{y}}), y = {{y}})
