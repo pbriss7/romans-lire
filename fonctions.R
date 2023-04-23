@@ -20,9 +20,10 @@ activate_packages_f <- function(){
       "tibble",
       "janitor",
       "XLS",
-      "gt"
+      "gt",
+      "skimmr"
     )
-  
+
   # # Ajout aux extensions de base
   # autres_extensions <- readline("Les extensions suivantes et leurs dépendances seront installées:\ndata.table\nreadxl\nggplot2\nstringr\ntibble\njanitor\nXLS\nSouhaitez-vous installer d'autres extensions? (oui/non)  ")
   # if(substr(tolower(autres_extensions), 1, 1) == "o") {

@@ -18,13 +18,18 @@ rm(list = setdiff(ls(), c(
   )))
   
 
-data.table(NbreObservationsTotal = data[, .N],
-           NbreTitresUniques = data[!duplicated(data$titre), .N])
+TitresUniques <- data.table(NbreObservationsTotal = data[, .N],
+                            NbreTitresUniques = data[!duplicated(data$titre), .N])
 
-print(a)
-library(skimr)
+fwrite(TitresUniques, "resultats/tables/20240423_PB_TitresUniques.csv")
+
 #### Distribution selon la langue du texte ----
-table(data$langue)
+LangueTexte <- data.table(LangueTexte = names(table(data$langue)),
+                          N = as.vector(table(data$langue)))
+
+LangueTexte_order_dt <- LangueTexte[order(-N)]
+
+fwrite(LangueTexte_order_dt, "resultats/tables/20230423_PB_DistribLangueTexte.csv")
 
 #### Distribution selon le genre (roman/nouvelle) ----
 
