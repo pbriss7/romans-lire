@@ -1,4 +1,5 @@
-# Fonctions d'importation et de prétraitement de la table
+# Fonctions d'importation et de prétraitement de la table ----
+# Auteur: Pascal Brissette (U. McGill) ----
 
 #### Fonction d'installation/activation des extensions ----
 activate_packages_f <- function(){

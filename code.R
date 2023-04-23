@@ -1,7 +1,7 @@
 # Statistiques descriptives de la base de données Romans à lire (BANQ) ----
 
 # Auteur: Pascal Brissette (U. McGill) ----
-
+# Commentaires et questions: pascal.brissette@mcgill.ca
 
 
 # Structure du répertoire
@@ -18,10 +18,12 @@ rm(list = setdiff(ls(), c(
   )))
   
 
+#### Nombre de titres uniques ----
 TitresUniques <- data.table(NbreObservationsTotal = data[, .N],
                             NbreTitresUniques = data[!duplicated(data$titre), .N])
 
 fwrite(TitresUniques, "resultats/tables/20240423_PB_TitresUniques.csv")
+
 
 #### Distribution selon la langue du texte ----
 LangueTexte <- data.table(LangueTexte = names(table(data$langue)),
@@ -30,6 +32,7 @@ LangueTexte <- data.table(LangueTexte = names(table(data$langue)),
 LangueTexte_order_dt <- LangueTexte[order(-N)]
 
 fwrite(LangueTexte_order_dt, "resultats/tables/20230423_PB_DistribLangueTexte.csv")
+
 
 #### Distribution selon le genre (roman/nouvelle) ----
 
