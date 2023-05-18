@@ -1,7 +1,7 @@
 # Statistiques descriptives de la base de données Romans à lire (BANQ) ----
 
-# Auteur: Pascal Brissette (U. McGill) ----
-# Commentaires et questions: pascal.brissette@mcgill.ca
+## Auteur: Pascal Brissette (U. McGill)
+## Commentaires et questions: pascal.brissette@mcgill.ca
 
 
 # Structure du répertoire
@@ -14,7 +14,8 @@ source("fonctions.R")
 rm(list = setdiff(ls(), c(
   "data",
   "slicing_f",
-  "separerCompter_f"
+  "separerCompter_f",
+  "graphique_f"
   )))
   
 
@@ -36,7 +37,7 @@ fwrite(LangueTexte_order_dt, "resultats/tables/20230423_PB_DistribLangueTexte.cs
 
 #### Distribution selon le genre (roman/nouvelle) ----
 
-# Création d'une colonne catégorielle
+# Création d'une colonne catégorielle roman/nouvelle
 data$roman_nouvelle <- ifelse(data$genre_litteraire %ilike% "roman", "roman", "nouvelle") |> factor()
 
 # Données pour tableau
@@ -51,22 +52,6 @@ distrib_docs_genre<- graphique_f(DistribRomanNouvelle_dt,
 
 ggsave("resultats/diagrammes/20230418_PB_DistribGenreLitt.png", dpi=300)
 
-# # PieChart
-# png(filename = "resultats/diagrammes/20230423_PB_DistribRomanNouvelles_PieChart.png",
-#     width = 1200,
-#     height = 1200)
-# PieChart(x = roman_nouvelle,
-#          cex = 2,
-#          data = data,
-#          hole = 0.5,
-#          fill = "blues",
-#          color = "black",
-#          lwd = 2,
-#          lty = 1,
-#          values_color = c("black", "white"),
-#          main = 'Distribution des documents\nselon le "genre"')
-# 
-# dev.off()
 
 #### Distribution selon l'année de publication ----
 
@@ -93,7 +78,7 @@ fwrite(distrib_decennies, "resultats/tables/20230418_PB_DistribChronologiqueDece
 
 #### Distribution par pays de publication ----
 
-# Corrections (la modalité indiquée d'abord est remplacée par la seconde):
+# Corrections au jeu de données (la modalité indiquée d'abord est remplacée par la seconde):
 data[pays == "FR", pays:="fr"]
 data[pays == "cc", pays:="ch"]
 data[pays == "enk", pays:="uk"]
@@ -104,7 +89,7 @@ pays_distrib <- data.table(sigle = names(table(data$pays)),
                            N = as.vector(table(data$pays)))
 
 
-# Importation de la table des sigles (champs Pays) et des équivalences (noms complets, pays associés)
+# Importation de la table des sigles (champ Pays) et des équivalences (noms complets, pays associés)
 siglesPaysEquiv <- fread("donnees/202304_PB_siglesPaysEquiv.csv")
 
 
@@ -159,7 +144,7 @@ litteratureNationaleEtiquettes2termes_order_dt_N <- litteratureNationaleEtiquett
 DistribLitteratureNationale <- graphique_f(litteratureNationaleEtiquettes2termes_order_dt_N,
                                            x = etiquettes2termes,
                                            y = N,
-                                           titre = "Distribution des documents selon la nationalité de l'auteur·e"
+                                           titre = "Distribution des documents selon les modalités du champ `Littérature nationale`"
                                            )
 
 ggsave("resultats/diagrammes/20230418_PB_DistribLittNationale2termes.png", dpi=300)
@@ -214,7 +199,7 @@ tousGenres_dt <- data.table(genre = names(tousGenres),
                                   N = as.vector(tousGenres),
                                   key = "N")
 
-# Séparation des sous-genres par genres (roman/nouvelle)
+# Séparation des sous-genres par genre (roman/nouvelle)
 RomansSousGenres <- tousGenres_dt[genre %ilike% "roman"]
 NouvellesSousGenres <- tousGenres_dt[genre %ilike% "nouvelles"]
 
@@ -251,7 +236,7 @@ fwrite(NouvellesSousGenres[order(-N)], "resultats/tables/20230421_PB_NouvellesSo
 NbreNoNa <- data[!is.na(sujets), .N]
 NbreNoNaPourcent <- NbreNoNa/nrow(data)*100
 
-# Donnéées pour graphique
+# Données pour graphique
 tousSujets <- strsplit(data$sujets, ";") |> unlist() |> table()
 tousSujets_dt <- data.table(sujet = names(tousSujets),
                             N = as.vector(tousSujets),
@@ -260,7 +245,7 @@ tousSujets_dt <- data.table(sujet = names(tousSujets),
 tousSujets_ord_dt <- tousSujets_dt[order(-N)][1:15]
 
 
-# Graphique
+# Diagramme
 DistribSujets <- graphique_f(tousSujets_ord_dt,
                              x = sujet,
                              y = N,
@@ -287,7 +272,7 @@ tousPersonnagres_dt <- data.table(personnage = names(tousPersonnages),
 
 tousPersonnagres_ord_dt <- tousPersonnagres_dt[order(-N)][1:15]
 
-# Graphique
+# Diagramme
 
 DistribPersonnages <- graphique_f(tousPersonnagres_ord_dt,
                                   x = personnage,
@@ -314,7 +299,7 @@ tousLieux_dt <- data.table(lieu = names(tousLieux),
 # Données pour graphique
 tousLieux_ord_dt <- tousLieux_dt[order(-N)][1:15]
 
-# Graphique
+# Diagramme
 DistribLieuxAction <- graphique_f(tousLieux_ord_dt,
                                   x = lieu,
                                   y = N,
@@ -338,7 +323,7 @@ tousPeriode_dt <- data.table(periode = names(tousPeriode),
                            key = "N")
 tousPeriode_ord_dt = tousPeriode_dt[order(-N)][1:15]
 
-# Graphique
+# Diagramme
 DistribPeriodeHist <- graphique_f(tousPeriode_ord_dt,
                                   x = periode,
                                   y = N,

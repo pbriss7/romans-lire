@@ -22,11 +22,17 @@ activate_packages_f <- function(){
       "janitor",
       "XLS",
       "gt",
-      "skimmr"
+      # "skimmr",
+      "shiny",
+      "shinyWidgets",
+      "DT",
+      "leaflet",
+      "leaflet.providers",
+      "dplyr"
     )
 
   # # Ajout aux extensions de base
-  # autres_extensions <- readline("Les extensions suivantes et leurs dépendances seront installées:\ndata.table\nreadxl\nggplot2\nstringr\ntibble\njanitor\nXLS\nSouhaitez-vous installer d'autres extensions? (oui/non)  ")
+  # autres_extensions <- readline("Les extensions suivantes et leurs dépendances seront installées:\ndata.table\nreadxl\nggplot2\nstringr\ntibble\njanitor\nXLS\nskimmr\nshiny\nshinyWidgets\nDT\nleaflet\nleaflet.providers"\nSouhaitez-vous installer d'autres extensions? (oui/non)  ")
   # if(substr(tolower(autres_extensions), 1, 1) == "o") {
   #   autres_extensions <- readline("S'il y a plus d'une extension, séparez les noms par une virgule:  ")
   #   autres_extensions <- strsplit(autres_extensions, ",") |> unlist()
@@ -118,13 +124,6 @@ importAndClean_main_f <- function() {
 }
 
 data <- importAndClean_main_f()
-
-
-# # Pour les tests, deux tables comprenant 3 lignes
-# xlsx = "donnees/testxlsx.xlsx"
-# csv = "donnees/testcsv.csv"
-# fonction_principale_f(xlsx)
-# fonction_principale_f(csv)
 
 
 # Fonction pour agréger les documents par décennie
