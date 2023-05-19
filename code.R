@@ -17,7 +17,6 @@ rm(list = setdiff(ls(), c(
   "separerCompter_f",
   "graphique_f"
   )))
-  
 
 #### Nombre de titres uniques ----
 TitresUniques <- data.table(NbreObservationsTotal = data[, .N],
@@ -58,16 +57,28 @@ ggsave("resultats/diagrammes/20230418_PB_DistribGenreLitt.png", dpi=300)
 # Création d'une table avec la fonction
 distrib_decennies <- data[!is.na(annee_de_publication), .(numero_de_sequence, annee_de_publication)][
   , decennies:=slicing_f(annee_de_publication)][
-    ,.N, by="decennies"][
-      order(decennies, decreasing = TRUE)]
+    ,.N, by="decennies"][order(decennies)]
+      
+# decennies:=as.factor(decennies, levels = c("1830", "1840", "1860", "1870", "1880", "1890","1900","1910","1920","1930",
+#                                               "1940", "1950", "1960", "1970", "1990", "2000", "2010", "2020"))]
 
 
 # Création d'un diagramme avec cette table
-distrib_docs_decennies <- graphique_f(distrib_decennies,
-                                      x =decennies,
-                                      y = N,
-                                      titre = "Distribution chronologique des documents par décennies",
-                                      flip = FALSE)
+distrib_docs_decennies <-
+  ggplot(distrib_decennies[1:19], aes(x = decennies, y = N)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Distribution chronologique des documents par décennies",
+       caption = "Données: BANQ, 2023") +
+  xlab(NULL) +
+  ylab(NULL) +
+  theme_classic() +
+  geom_text(
+    aes(label = N),
+    hjust = 0.5,
+    vjust = -0.7,
+    size = 2.5,
+    colour = "black"
+  )
 
 # Exportation du diagramme
 ggsave("resultats/diagrammes/20230418_PB_DistribChronologiqueDecennies.png", dpi=300)
