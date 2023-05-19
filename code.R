@@ -65,7 +65,7 @@ distrib_decennies <- data[!is.na(annee_de_publication), .(numero_de_sequence, an
 
 # Création d'un diagramme avec cette table
 distrib_docs_decennies <-
-  ggplot(distrib_decennies[1:19], aes(x = decennies, y = N)) +
+  ggplot(distrib_decennies, aes(x = decennies, y = N)) +
   geom_bar(stat = "identity") +
   labs(title = "Distribution chronologique des documents par décennies",
        caption = "Données: BANQ, 2023") +
